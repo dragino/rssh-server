@@ -46,11 +46,8 @@
 #include <unistd.h>         /* getopt, access */
 #include <stdlib.h>         /* atoi, exit */
 #include <errno.h>          /* error messages */
-
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <sys/wait.h>       /* waitpid */
+#include<dirent.h>          /* opendir, readdir */
+#include <ctype.h>          /* isdigit */
 
 #include <sys/socket.h>     /* socket specific definitions */
 #include <netinet/in.h>     /* INET constants and stuff */
@@ -100,6 +97,7 @@ static char ssh_port[8] = "22";
 static char ssh_key[32] = {'\0'}; 
 static char ssh_opt[32] = {'\0'}; 
 static char str_mac[17] = {'\0'}; 
+static int ssh_alive = 60;  /* keepalive seconds */
 
 /* gateway <-> MAC protocol variables */
 static uint32_t net_mac_h; /* Most Significant Nibble, network order */
@@ -123,7 +121,11 @@ static void wait_ms(unsigned long a);
 
 static int init_sock(const char *addr, const char *port, const void *timeout, int size); 
 
-static int get_rssh_port();
+static uint16_t get_rssh_port();
+
+static int check(char* dir);
+
+static int pidof(char* processname);
 
 /* threads */
 void thread_status(void);
@@ -142,6 +144,7 @@ static void usage( void )
     printf(" -i <identityfile>   (multiple allowed, default .ssh/id_rssh)\n");
     printf(" -o <option>  extra option of rssh connect\n");
     printf(" -m <gatewayID> Gateway mac ID\n");
+    printf(" -k <keepalive> Senconds for alive Interval\n");
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 }
 
@@ -221,6 +224,11 @@ int main(int argc, char ** argv)
                 strncpy(ssh_user, optarg, sizeof(ssh_user));
             break;
 
+        case 'k':
+            if (NULL != optarg)
+                ssh_alive = atoi(optarg);
+            break;
+
         case 'm':
             if (NULL != optarg) {
                 strncpy(str_mac, optarg, sizeof(str_mac));
@@ -268,56 +276,35 @@ int main(int argc, char ** argv)
 
     while (!exit_sig) {
 
-        if ((remot_port = get_rssh_port()) == 0) {
-            lgw_log(LOG_INFO, "INFO~ [Main] Can't get remote port, run again! (loop:%d)\n", loop++);
-            wait_ms(1000 * 5);
+        if ((remot_port = get_rssh_port()) <= 0) {
+            lgw_log(LOG_INFO, "INFO~ [Main] remote port (%u), run again! (loop:%d)\n", remot_port, loop++);
+            wait_ms(1000 * 20); //20s
             continue;
         }
 
         if ((pid = fork()) < 0) {
             lgw_log(LOG_ERROR, "ERROR~ [RSSH-FORK] fork rssh error, run again!\n");
-            wait_ms(250 * DEFAULT_STAT);  
+            wait_ms(250 * DEFAULT_STAT);//15s  
+            continue;
         } else if (pid == 0) {         
             if (strlen(ssh_key) > 1) 
-                snprintf(cmdstring, sizeof(cmdstring), "ssh -i %s -fNR %u:localhost:%s %s@%s", ssh_key, remot_port, ssh_port, ssh_user, serv_addr);
+                snprintf(cmdstring, sizeof(cmdstring), "ssh -K %d -i %s -yfNR %u:localhost:%s %s@%s", ssh_alive, ssh_key, remot_port, ssh_port, ssh_user, serv_addr);
             else
-                snprintf(cmdstring, sizeof(cmdstring), "ssh -fNR %u:localhost:%s %s@%s",  remot_port, ssh_port, ssh_user, serv_addr);
+                snprintf(cmdstring, sizeof(cmdstring), "ssh -K %d -yfNR %u:localhost:%s %s@%s",  ssh_alive, remot_port, ssh_port, ssh_user, serv_addr);
             lgw_log(LOG_DEBUG, "DEBUG~ [RSSH-FORK] run: %s\n", cmdstring);
             execl("/bin/sh", "sh", "-c", cmdstring, (char *)0);
             lgw_log(LOG_DEBUG, "DEBUG~ [RSSH-FORK] exec rssh error!\n");
             _exit(127);     
         } else {             
-            pid = pid + 2;// cmdstring process id, guess the pid of rssh ? 
-            wait_ms(1000 * 5); 
             for (;;) {
-                if (exit_sig) break;
-                sprintf(pid_file, "/proc/%d/stat", pid); 
-                fd = open(pid_file, O_RDONLY);
-
-                lgw_log(LOG_DEBUG, "DEBUG~ [RSSH-CHECK] start checking rssh connect status...(pid=%d)\n", pid);
-
-                /* if fd < 0 or read len < 0 , Warnning! because may be open many rssh process*/
-
-                if (fd > 0) {
-                    memset(file_buff, 0, sizeof(file_buff));
-                    i = read(fd, file_buff, sizeof(file_buff) - 1);
-                    close(fd);
-                    if (i > 0) {
-                        if (NULL == strstr(file_buff, "ssh")) {
-                            break; 
-                        }
-                        lgw_log(LOG_DEBUG, "DEBUG~ [RSSH-CHECK] rssh connected with pid=%d\n", pid);
-                    } 
-                } else {
-                    close(fd);
-                    wait_ms(1000 * 2); //every minute
-                    break; /* break trigger restart rssh */
+                if (exit_sig) {
+                    system("killall ssh");
+                    break;
                 }
-                
-                wait_ms(1000 * 60); //every minute
+                wait_ms(1000 * 6); //6s
             } 
              
-            lgw_log(LOG_DEBUG, "DEBUG~ [RSSH-FORK] rssh disconnect(pid=%d), restart rssh connect\n", pid);
+            //lgw_log(LOG_DEBUG, "DEBUG~ [RSSH-CHECK] rssh disconnect, restart rssh connect\n");
         }
 
     }
@@ -357,6 +344,8 @@ void thread_status(void) {
     lgw_log(LOG_INFO, "INFO~ [PushStatus] Stating Thread for status push\n");
 
     while (!exit_sig) {
+
+        wait_ms(DEFAULT_STAT * 1000);
 
         sock_up = init_sock(serv_addr, serv_port, (void*)&push_timeout, sizeof(struct timeval));
 
@@ -398,13 +387,12 @@ void thread_status(void) {
 
         lgw_log(LOG_DEBUG, "DEBUG~ [PushStatus] PUSH_ACK = %u, ACK_STATUS = %u;\n", status_push, status_ack);
 
-        wait_ms(DEFAULT_STAT * 1000);
     }
 
     lgw_log(LOG_INFO, "\nINFO~ [PushStatus] End of pull status thread\n");
 }
 
-static int get_rssh_port() {
+static uint16_t get_rssh_port() {
     int j;
     uint16_t port = 0;
 
@@ -437,7 +425,7 @@ static int get_rssh_port() {
 
     lgw_log(LOG_DEBUG, "DEBUG~ [GetPort] Create socke to server(%s), port(%s), sock=(%d)\n", serv_addr, serv_port, sock_up);
 
-    if (sock_up == -1) return -1;
+    if (sock_up == -1) return 0;
     /* send datagram to server */
     send(sock_up, (void *)buff_up, 12, 0);
 
@@ -560,4 +548,60 @@ static int init_sock(const char *addr, const char *port, const void *timeout, in
 	}
 
 	return sockfd;
+}
+
+static int check(char *dir)
+{
+	int i;
+	for(i = 0; dir[i] != '\0'; i++)
+	{
+		if(!isdigit(dir[i]))
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int pidof(char *processname)
+{
+	DIR *dir;
+	FILE *f;
+	struct dirent *record;
+    int i = 0, pid = 0;
+
+	int *pidlist,pidlist_x=0, pidlist_realloc=1;
+	char path[128], buffer[8];
+
+	dir = opendir("/proc/");
+	if(dir == NULL) {
+		return -1;
+	}
+
+	while ((record = readdir(dir)) != NULL) {
+		if (check(record->d_name)) {
+			strcpy(path, "/proc/");
+			strcat(path, record->d_name);
+			strcat(path, "/comm");
+
+			f = fopen(path, "r");
+
+			if (f != NULL) {
+                memset(buffer, 0, sizeof(buffer));
+                fread(buffer, sizeof(char), sizeof(buffer) - 1, f);
+                //printf("#%s++buffer:%s\n", record->d_name, buffer);
+				if (strcmp(buffer, processname) == 0) {
+					pid = atoi(record->d_name);
+			        fclose(f);
+                    return pid;
+				}
+			} 
+
+			fclose(f);
+		}		 
+	}
+
+	closedir(dir);
+
+	return -1;
 }
