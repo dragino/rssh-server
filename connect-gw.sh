@@ -23,7 +23,7 @@ status=`sqlite3 /var/rsshdb.sqlite3 "select value from rsshtb where key like '%s
 if [ -n "${status}" ]; then
     #d1=`date -d "${status}" +%s`
     d1=${status}
-    d2=`data +%s`
+    d2=`date +%s`
     diff=$(($d2-$d1))
     # TODO if the timezone is not correct 
     if [ $diff -gt 600 ]; then  #10 minutes
