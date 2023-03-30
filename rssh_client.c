@@ -95,7 +95,7 @@ static uint64_t lgwm = 0; /* Lora gateway MAC address */
 static char serv_addr[64] = "161.117.181.127"; /* address of the server (host name or IPv4/IPv6) */
 static char serv_port[8] = STR(DEFAULT_PORT_UP); /* server port for upstream traffic */
 static unsigned stat_interval = DEFAULT_STAT; /* time interval (in sec) at which statistics are collected and displayed */
-static char ssh_user[16] = "guest"; 
+static char ssh_user[33] = "guest"; /* Linux usernames are normally limited to 32 chars by useradd */ 
 static char ssh_port[8] = "22"; 
 static char ssh_key[32] = {'\0'}; 
 static char ssh_opt[32] = {'\0'}; 
@@ -137,7 +137,7 @@ static void usage( void )
     printf(" -h  print this help\n");
     printf(" -s <server>  rssh server address, default: 161.117.181.127\n");
     printf(" -p <port>  rssh server port, default 3721\n");
-    printf(" -u <username>  ssh username, default guest\n");
+    printf(" -u <username>  ssh username, default guest, max 32 chars\n");
     printf(" -P <port>  ssh server port, default 22\n");
     printf(" -i <identityfile>   (multiple allowed, default .ssh/id_rssh)\n");
     printf(" -o <option>  extra option of rssh connect\n");
@@ -178,7 +178,7 @@ int main(int argc, char ** argv)
     char file_buff[64];
 
     pid_t pid;
-    char cmdstring[128];
+    char cmdstring[165]; /* Max possible size given args to snprintf */
 
     unsigned long long ull = 0;
 
@@ -190,40 +190,64 @@ int main(int argc, char ** argv)
             usage( );
             return EXIT_SUCCESS;
             break;
-
+        
         case 's':
             if (NULL != optarg)
+            {
                 strncpy(serv_addr, optarg, sizeof(serv_addr));
+                serv_addr[sizeof(serv_addr)-1] = '\0';
+            }
             break;
 
         case 'p':
             if (NULL != optarg)
+            {
                 strncpy(serv_port, optarg, sizeof(serv_port));
+                serv_port[sizeof(serv_port)-1] = '\0';
+            }
             break;
 
         case 'P':
-            if (NULL != optarg)
+            if (NULL != optarg){
                 strncpy(ssh_port, optarg, sizeof(ssh_port));
+                ssh_port[sizeof(ssh_port)-1] = '\0';
+            }
             break;
 
         case 'i':
             if (NULL != optarg)
+            {
                 strncpy(ssh_key, optarg, sizeof(ssh_key));
+                ssh_key[sizeof(ssh_key)-1] = '\0';
+            }
             break;
 
         case 'o':
             if (NULL != optarg)
+            {
                 strncpy(ssh_opt, optarg, sizeof(ssh_opt));
+                ssh_opt[sizeof(ssh_opt)-1] = '\0';
+            }    
             break;
 
         case 'u':
-            if (NULL != optarg)
-                strncpy(ssh_user, optarg, sizeof(ssh_user));
+            if (NULL != optarg){
+                if(strlen(optarg) > (sizeof(ssh_user)-1)){
+                    lgw_log(LOG_ERROR, "ERROR~ username exceeds 32 chars, use -h option for help\n" );
+                    usage( );
+                    return EXIT_FAILURE;
+                }
+                else{
+                    strncpy(ssh_user, optarg, sizeof(ssh_user));
+                    ssh_user[sizeof(ssh_user)-1] = '\0';
+                }
+            }
             break;
 
         case 'm':
             if (NULL != optarg) {
                 strncpy(str_mac, optarg, sizeof(str_mac));
+                str_mac[sizeof(str_mac)-1] = '\0';
                 sscanf(str_mac, "%llx", &ull);
                 lgwm = ull;
                 lgw_log(LOG_INFO, "INFO~ GatewayID is configure to %016llX(%s) \n", ull, str_mac);
