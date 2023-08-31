@@ -62,8 +62,7 @@ elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
     searchForGatewayID
     setStatus
     setPort
-    interface=$(sshpass -p dragino /usr/bin/ssh -p ${port} -tt root@localhost "ip route|grep default|cut -d ' ' -f 5")
-    echo $interface
+    interface=$(sshpass -p dragino /usr/bin/ssh -p ${port} root@localhost "ip route|grep default|cut -d ' ' -f 5")
         if [[ $interface == "wlan0-2" ]] ; then
             echo "Connectée en Wifi"
         elif [[ $interface == "eth1" ]] ; then
