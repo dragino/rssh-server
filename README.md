@@ -10,7 +10,7 @@ systemctl -l status rssh
 
 ## Add an alias for gateway.sh script
 sudo nano ~/.bashrc
-add 'alias gateway='/home/ec2-user/rssh-server/./connect-gw.sh'
+add 'alias gateway='/home/ec2-user/rssh-server/./gateway.sh'
 . ~/.bashrc
 
 ## Get the internet source for a gateway

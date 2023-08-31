@@ -5,6 +5,11 @@ moduleID=$2
 gatewayID=""
 port=""
 
+Red='\033[0;31m'    # Red
+Green='\033[0;32m'  # Green
+Unset='\033[0m'        # No Color
+echo -e "I ${RED}love${NC} Stack Overflow"
+
 searchForGatewayID(){
     gatewayID=`sqlite3 /var/rsshdb.sqlite3 "select key, value from rsshtb where key like '%status/%$moduleID'" | cut -d "/" -f 4 | cut -d "|" -f 1`
     echo "GatewayID:  ${gatewayID}"
@@ -64,11 +69,11 @@ elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
     setPort
     interface=$(sshpass -p dragino /usr/bin/ssh -p ${port} -o StrictHostKeyChecking=no root@localhost "ip route|grep default|cut -d ' ' -f 5")
         if [[ $interface == "wlan0-2" ]] ; then
-            echo "Connectée en Wifi"
+            echo "${Green} Connectée en Wifi ${Unset}"
         elif [[ $interface == "eth1" ]] ; then
-            echo "Connectée en Ethernet"
+            echo "${Green} Connectée en Ethernet ${Unset}"
         elif [[ $interface == "3g-cellular" ]]; then
-            echo "Connectée en 4G"
+            echo -e  "${Green}Connectée en 4G ${Unset}"
         fi
     exit 0
 elif [ "${opt}" = "-r" ] && [ "$#" -eq 2 ]; then
