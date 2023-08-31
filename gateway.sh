@@ -5,14 +5,13 @@ moduleID=$2
 gatewayID=""
 port=""
 
+Blue='\033[0;34m'
 Red='\033[0;31m'    # Red
 Green='\033[0;32m'  # Green
-Unset='\033[0m'        # No Color
-echo -e "I ${RED}love${NC} Stack Overflow"
+Unset='\033[0m'     # No Color
 
 searchForGatewayID(){
     gatewayID=`sqlite3 /var/rsshdb.sqlite3 "select key, value from rsshtb where key like '%status/%$moduleID'" | cut -d "/" -f 4 | cut -d "|" -f 1`
-    echo "GatewayID:  ${gatewayID}"
 }
 
 setStatus(){
@@ -21,22 +20,19 @@ setStatus(){
         d1=${status}
         d2=`date +%s`
         diff=$(($d2-$d1))
-        # TODO if the timezone is not correct 
         if [ $diff -gt 600 ]; then  #10 minutes
-            echo "Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min)"
+            echo "${Red}Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min)${Unset}"
             exit 0
         fi
     else
-            echo "Connection impossible, le dispositif n'a jamais communiqué"
+            echo "${Red}Connection impossible, le dispositif n'a jamais communiqué${Unset}"
     fi
 }
 
 setPort(){
     port=`sqlite3 /var/rsshdb.sqlite3 "select value from rsshtb where key like '%port/${gatewayID}';"`
-    if [ -n "${port}" ]; then
-        echo "Port: {$port}"
-    else
-        echo "Pas de port trouvé"
+    if [ -z "${port}" ]; then
+        echo "${Red}Pas de port trouvé${Unset}"
         exit 0
     fi
 }
@@ -51,19 +47,16 @@ if [ "$#" -eq 0 ]; then
 fi
 
 if [ "${opt}" = "-l" ] && [ "$#" -eq 1 ]; then
-    echo "Liste les gateway ayant déjà communiquées"
     list=`sqlite3 /var/rsshdb.sqlite3 "select key, value from rsshtb where key like '%status/%'"`
     echo "${list}"
     exit 0
 elif [ "${opt}" = "-i" ] && [ "$#" -eq 2 ]; then
-    echo "Connection SSH:"
     searchForGatewayID
     setStatus
     setPort
     sshpass -p dragino /usr/bin/ssh -p ${port} -o StrictHostKeyChecking=no root@localhost
     exit 0
 elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
-    echo "Source internet:"
     searchForGatewayID
     setStatus
     setPort
@@ -77,7 +70,7 @@ elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
         fi
     exit 0
 elif [ "${opt}" = "-r" ] && [ "$#" -eq 2 ]; then
-    echo "Reboot de la gateway:"
+    echo "${Green}Reboot de la gateway:${Unset}"
     searchForGatewayID
     setStatus
     setPort

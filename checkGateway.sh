@@ -11,26 +11,16 @@ function reboot(){
 }
 
 
-# ##
-# # Color  Variables
-# ##
-# green='\e[32m'
-# blue='\e[34m'
-# clear='\e[0m'
-
-# ##
-# # Color Functions
-# ##
-
-# ColorGreen(){
-# 	echo -ne $green$1$clear
-# }
-# ColorBlue(){
-# 	echo -ne $blue$1$clear
-# }
+##
+# Color  Variables
+##
+Blue='\033[0;34m'
+Red='\033[0;31m'   
+Green='\033[0;32m' 
+Unset='\033[0m'    
 
 connectivityMenu(){
-echo "Saisir le moduleID"
+echo "${Blue}Saisir le moduleID${Unset}"
 read id
 if [ -z "${id}" ];then 
     menu 
@@ -40,7 +30,7 @@ else
 fi
 }
 rebootMenu(){
-echo "Saisir le moduleID"
+echo "${Blue}Saisir le moduleID${Unset}"
 read id
 if [ -z "${id}" ];then 
     menu 
@@ -53,17 +43,17 @@ fi
 
 
 menu(){
-echo " Connectivité des gateways dragino
-    '1) Source internet de la gateway
-    '2) Reboot de la gateway
-    '0) Sortir
+echo "Connectivité des gateways dragino
+    ${Blue}1)${Unset} Source internet de la gateway
+    ${Blue}2)${Unset} Reboot de la gateway
+    ${Blue}0)${Unset} Sortir
 Choisir une option: "
         read a
         case $a in
 	        1) connectivityMenu ; menu ;;
 	        2) rebootMenu ; menu ;;
 		0) exit 0 ;;
-		*) echo -e $red"Option invalide."$clear; menu;;
+		*) echo -e $Red"Option invalide."$Unset; menu;;
         esac
 }
 
