@@ -21,18 +21,18 @@ setStatus(){
         d2=`date +%s`
         diff=$(($d2-$d1))
         if [ $diff -gt 600 ]; then  #10 minutes
-            echo "${Red}Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min)${Unset}"
+            echo "${Red} Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min) ${Unset}"
             exit 0
         fi
     else
-            echo "${Red}Connection impossible, le dispositif n'a jamais communiqué${Unset}"
+            echo "${Red} Connection impossible, le dispositif n'a jamais communiqué ${Unset}"
     fi
 }
 
 setPort(){
     port=`sqlite3 /var/rsshdb.sqlite3 "select value from rsshtb where key like '%port/${gatewayID}';"`
     if [ -z "${port}" ]; then
-        echo "${Red}Pas de port trouvé${Unset}"
+        echo "${Red} Pas de port trouvé ${Unset}"
         exit 0
     fi
 }
