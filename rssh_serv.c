@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     sigaction(SIGQUIT, &sigact, NULL);  /* Ctrl-\ */
 
     /* Parse command line options */
-    while( (i = getopt( argc, argv, "p:d:" )) != -1 )
+    while( (i = getopt( argc, argv, "p:d:v" )) != -1 )
     {
         switch( i ) {
 
@@ -114,7 +114,6 @@ int main(int argc, char* argv[]) {
             break;
 
         case 'v':
-            if (NULL != optarg)
                 LOG_INFO= 1;
                 LOG_DEBUG= 1;
             break;

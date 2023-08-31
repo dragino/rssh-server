@@ -50,14 +50,14 @@ if [ "${opt}" = "-l" ] && [ "$#" -eq 1 ]; then
     list=`sqlite3 /var/rsshdb.sqlite3 "select key, value from rsshtb where key like '%status/%'"`
     echo "${list}"
     exit 0
-elif [ "${opt}" = "-i" ] && [ "$#" -eq 1 ]; then
+elif [ "${opt}" = "-i" ] && [ "$#" -eq 2 ]; then
     echo "Connection SSH:"
     searchForGatewayID
     setStatus
     setPort
     /usr/bin/ssh -p ${port} root@localhost
     exit 0
-elif [ "${opt}" = "-c" ] && [ "$#" -eq 1 ]; then
+elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
     echo "Source internet:"
     searchForGatewayID
     setStatus
@@ -72,7 +72,7 @@ elif [ "${opt}" = "-c" ] && [ "$#" -eq 1 ]; then
             echo "Connectée en 4G"
         fi
     exit 0
-elif [ "${opt}" = "-r" ] && [ "$#" -eq 1 ]; then
+elif [ "${opt}" = "-r" ] && [ "$#" -eq 2 ]; then
     echo "Reboot de la gateway:"
     searchForGatewayID
     setStatus

@@ -184,7 +184,7 @@ int main(int argc, char ** argv)
     unsigned long long ull = 0;
     
     /* Parse command line options */
-    while( (i = getopt( argc, argv, "hs:p:P:i:o:m:u:" )) != -1 )
+    while( (i = getopt( argc, argv, "hs:p:P:i:o:m:u:v" )) != -1 )
     {
         switch( i ) {
         case 'h':
