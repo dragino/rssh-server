@@ -21,18 +21,18 @@ setStatus(){
         d2=`date +%s`
         diff=$(($d2-$d1))
         if [ $diff -gt 600 ]; then  #10 minutes
-            echo -e "${Red} Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min) ${Unset}"
+            echo -e "Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min)"
             exit 0
         fi
     else
-            echo "${Red} Connection impossible, le dispositif n'a jamais communiqué ${Unset}"
+            echo "Connection impossible, le dispositif n'a jamais communiqué"
     fi
 }
 
 setPort(){
     port=`sqlite3 /var/rsshdb.sqlite3 "select value from rsshtb where key like '%port/${gatewayID}';"`
     if [ -z "${port}" ]; then
-        echo "${Red} Pas de port trouvé ${Unset}"
+        echo "Pas de port trouvé"
         exit 0
     fi
 }
@@ -70,7 +70,7 @@ elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
         fi
     exit 0
 elif [ "${opt}" = "-r" ] && [ "$#" -eq 2 ]; then
-    echo "${Green}Reboot de la gateway:${Unset}"
+    echo "${Green} Reboot de la gateway: ${Unset}"
     searchForGatewayID
     setStatus
     setPort
