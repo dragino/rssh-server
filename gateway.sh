@@ -21,7 +21,7 @@ setStatus(){
         d2=`date +%s`
         diff=$(($d2-$d1))
         if [ $diff -gt 600 ]; then  #10 minutes
-            echo "${Red} Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min) ${Unset}"
+            echo -e "${Red} Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min) ${Unset}"
             exit 0
         fi
     else
