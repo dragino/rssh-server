@@ -47,8 +47,8 @@ volatile bool exit_sig = false;
 
 /* -------------------------------------------------------------------------- */
 /* --- PUBLIC DECLARATION ---------------------------------------- */
-uint8_t LOG_INFO = 1;
-uint8_t LOG_DEBUG = 1;
+uint8_t LOG_INFO = 0;
+uint8_t LOG_DEBUG = 0;
 uint8_t LOG_WARNING = 1;
 uint8_t LOG_ERROR = 1;
 
@@ -111,6 +111,12 @@ int main(int argc, char* argv[]) {
         case 'p':
             if (NULL != optarg)
                 strncpy(service, optarg, sizeof(service));
+            break;
+
+        case 'v':
+            if (NULL != optarg)
+                LOG_INFO= 1;
+                LOG_DEBUG= 1;
             break;
 
         default:
