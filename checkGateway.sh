@@ -20,19 +20,19 @@ Green='\033[0;32m'
 Unset='\033[0m'    
 
 connectivityMenu(){
-echo "${Blue}Saisir le moduleID${Unset}"
+echo "${Blue}Saisir le moduleID${Unset} (0 : retour au menu)"
 read id
-if [ -z "${id}" ];then 
+if [ -z "${id}" ] || [ $id == "0" ];then 
     menu 
-else 
+else    
     getConnectivity
     connectivityMenu
 fi
 }
 rebootMenu(){
-echo "${Blue}Saisir le moduleID${Unset}"
+echo "${Blue}Saisir le moduleID${Unset} (0 : retour au menu)"
 read id
-if [ -z "${id}" ];then 
+if [ -z "${id}" ] || [ $id == "0" ];then 
     menu 
 else 
     reboot
@@ -43,11 +43,11 @@ fi
 
 
 menu(){
-echo "Connectivité des gateways dragino
+echo "${Blue}Connectivité des gateways dragino${Unset}
     ${Blue}1)${Unset} Source internet de la gateway
     ${Blue}2)${Unset} Reboot de la gateway
     ${Blue}0)${Unset} Sortir
-Choisir une option: "
+${Green}Choisir une option:${Unset}"
         read a
         case $a in
 	        1) connectivityMenu ; menu ;;
