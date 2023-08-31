@@ -18,7 +18,7 @@ setStatus(){
         diff=$(($d2-$d1))
         # TODO if the timezone is not correct 
         if [ $diff -gt 600 ]; then  #10 minutes
-            echo "Connection impossible, la dernière MAJ date de plus de 10 min"
+            echo "Connection impossible, la dernière MAJ date de plus de $((diff/60))min (Refresh toutes les 10min)"
             exit 0
         fi
     else
@@ -55,7 +55,7 @@ elif [ "${opt}" = "-i" ] && [ "$#" -eq 2 ]; then
     searchForGatewayID
     setStatus
     setPort
-    sshpass -p dragino /usr/bin/ssh -p ${port} -o StrictHostKeyChecking=no  root@localhost
+    sshpass -p dragino /usr/bin/ssh -p ${port} -o StrictHostKeyChecking=no root@localhost
     exit 0
 elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
     echo "Source internet:"
