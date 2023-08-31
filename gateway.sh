@@ -38,10 +38,10 @@ setPort(){
 
 if [ "$#" -eq 0 ]; then
     echo "Usage:" 
-    echo "       $0 -l : Liste les gateway ayant déjà communiquées (l: list)" 
-    echo "       $0 -i moduleID : Connection SSH à la gateway (i: interract)" 
-    echo "       $0 -c moduleID : Retourne la source internet (c: connectivity)" 
-    echo "       $0 -r moduleID : Reboot de la gateway (c: connectivity)" 
+    echo "       gateway -l : Liste les gateway ayant déjà communiquées (l: list)" 
+    echo "       gateway -i moduleID : Connection SSH à la gateway (i: interract)" 
+    echo "       gateway -c moduleID : Retourne la source internet (c: connectivity)" 
+    echo "       gateway -r moduleID : Reboot de la gateway (c: connectivity)" 
     exit 0
 fi
 
