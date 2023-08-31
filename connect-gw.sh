@@ -55,7 +55,7 @@ elif [ "${opt}" = "-i" ] && [ "$#" -eq 2 ]; then
     searchForGatewayID
     setStatus
     setPort
-    /usr/bin/ssh -p ${port} root@localhost
+    sshpass -p dragino /usr/bin/ssh -p ${port} root@localhost
     exit 0
 elif [ "${opt}" = "-c" ] && [ "$#" -eq 2 ]; then
     echo "Source internet:"
