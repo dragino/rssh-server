@@ -1,0 +1,13 @@
+[Unit]
+Description=RSSH service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/home/ec2-user/rssh-server/./rssh_serv -v 2>&1 &
+
+[Install]
+WantedBy=multi-user.target

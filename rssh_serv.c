@@ -47,8 +47,8 @@ volatile bool exit_sig = false;
 
 /* -------------------------------------------------------------------------- */
 /* --- PUBLIC DECLARATION ---------------------------------------- */
-uint8_t LOG_INFO = 1;
-uint8_t LOG_DEBUG = 1;
+uint8_t LOG_INFO = 0;
+uint8_t LOG_DEBUG = 0;
 uint8_t LOG_WARNING = 1;
 uint8_t LOG_ERROR = 1;
 
@@ -104,13 +104,18 @@ int main(int argc, char* argv[]) {
     sigaction(SIGQUIT, &sigact, NULL);  /* Ctrl-\ */
 
     /* Parse command line options */
-    while( (i = getopt( argc, argv, "p:d:" )) != -1 )
+    while( (i = getopt( argc, argv, "p:d:v" )) != -1 )
     {
         switch( i ) {
 
         case 'p':
             if (NULL != optarg)
                 strncpy(service, optarg, sizeof(service));
+            break;
+
+        case 'v':
+                LOG_INFO= 1;
+                LOG_DEBUG= 1;
             break;
 
         default:

@@ -79,8 +79,8 @@
 
 /* -------------------------------------------------------------------------- */
 /* --- PUBLIC DECLARATION ---------------------------------------- */
-uint8_t LOG_INFO = 1;
-uint8_t LOG_DEBUG = 1;
+uint8_t LOG_INFO = 0;
+uint8_t LOG_DEBUG = 0;
 uint8_t LOG_WARNING = 1;
 uint8_t LOG_ERROR = 1;
 
@@ -142,6 +142,7 @@ static void usage( void )
     printf(" -i <identityfile>   (multiple allowed, default .ssh/id_rssh)\n");
     printf(" -o <option>  extra option of rssh connect\n");
     printf(" -m <gatewayID> Gateway mac ID\n");
+    printf(" -v verbose mode\n");
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 }
 
@@ -181,14 +182,20 @@ int main(int argc, char ** argv)
     char cmdstring[128];
 
     unsigned long long ull = 0;
-
+    
     /* Parse command line options */
-    while( (i = getopt( argc, argv, "hs:p:P:i:o:m:u:" )) != -1 )
+    while( (i = getopt( argc, argv, "hs:p:P:i:o:m:u:v" )) != -1 )
     {
         switch( i ) {
         case 'h':
             usage( );
             return EXIT_SUCCESS;
+            break;
+
+        case 'v':
+            if (NULL != optarg)
+                LOG_INFO= 1;
+                LOG_DEBUG= 1;
             break;
 
         case 's':
