@@ -1,3 +1,8 @@
+## Scripts
+# Client scripts
+They are stored into /cient-scripts, you must own the RSSHServer.pem certificate in order to get it working
+Then call checkGateway.sh
+
 ## Add the service Deamon
 # Copy file 
 Copy rssh.service file to /etc/systemd/system/
